@@ -2,6 +2,7 @@
 Agent setup.
 """
 import yaml
+import docker_scraper
 
 HOST = None
 BUCKET = None
@@ -12,4 +13,9 @@ if __name__ == "__main__":
     with open('config.yaml', 'r') as config:
         cfg = yaml.load(config, Loader=yaml.BaseLoader)
 
-    print(cfg['hostUrl'])
+    HOST = cfg['host']
+    BUCKET = cfg['bucket']
+    ORG = cfg['organization']
+    TOKEN = ['token']
+
+    docker_scraper.get_containers_list()
