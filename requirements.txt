@@ -1,2 +1,3 @@
 influxdb-client
 docker
+PyYAML
