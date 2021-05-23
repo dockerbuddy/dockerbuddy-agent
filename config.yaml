@@ -1,0 +1,4 @@
+host: <hostUrl>
+bucket: <bucket>
+organization: <organization>
+token: <token> # or as an env variable?
