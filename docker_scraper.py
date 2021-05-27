@@ -16,4 +16,4 @@ def get_containers_list():
             'stats': container.stats(stream=False)
         })
 
-    print(containers_info_list)
+    return containers_info_list
