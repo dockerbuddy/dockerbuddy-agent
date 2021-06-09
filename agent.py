@@ -1,4 +1,6 @@
 import time
+from concurrent.futures.thread import ThreadPoolExecutor
+
 import docker
 import yaml
 from influxdb_client import InfluxDBClient, Point, WritePrecision
@@ -8,6 +10,7 @@ import psutil
 
 CONFIG_FILENAME = 'config.yaml'
 HOME_PATH = '/'
+MAX_WORKERS = 50
 
 
 class Agent:
@@ -19,6 +22,7 @@ class Agent:
             self.influxdb_write_options = ASYNCHRONOUS
             self.influxdb_data_writer = self.influxdb_client.write_api(self.influxdb_write_options)
             self.docker_client = docker.from_env()
+            self.executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
         except Exception as e:
             print(f"Configuration failed due to : {e}")
         else:
@@ -46,19 +50,23 @@ class Agent:
             .field("used", data.used)\
             .field("percent", data.percent)
 
-    def write_docker_containers_stats(self, name, all):
+    def save_container_point_to_influx(self, container, name):
+        attrs, stats = container.attrs, container.stats(stream=False)
+        container_stats_point = Point(name) \
+            .time(datetime.utcnow(), WritePrecision.NS) \
+            .field("id", attrs['Id']) \
+            .field("name", attrs['Name']) \
+            .field('image', attrs['Config']['Image']) \
+            .field('status', attrs['State']['Status']) \
+            .field('memory_usage', int(stats['memory_stats']['usage'])) \
+            .field('cpu_percentage', self.calculate_cpu_percentage(stats))
+
+        self.write_point_to_influxdb(container_stats_point)
+
+    def save_containers_info_to_influx(self, name, all):
         containers = self.docker_client.containers.list(all=all)
         for container in containers:
-            container_stats_point = Point(name)\
-                .time(datetime.utcnow(), WritePrecision.NS)\
-                .tag("id", container.attrs['Id'])\
-                .tag("name", container.attrs['Name'])\
-                .tag('image', container.attrs['Config']['Image'])\
-                .tag('status', container.attrs['State']['Status'])\
-                .field('memory_usage', int(container.stats(stream=False)['memory_stats']['usage']))\
-                .field('cpu_percentage', self.calculate_cpu_percentage(container.stats(stream=False)))
-
-            self.write_point_to_influxdb(container_stats_point)
+            self.executor.submit(self.save_container_point_to_influx, container, name)
 
     def calculate_cpu_percentage(self, stats):
         return abs(stats['cpu_stats']['cpu_usage']['total_usage'] -
@@ -71,5 +79,5 @@ class Agent:
             disk_point = self.create_point_from_system_data(psutil.disk_usage(HOME_PATH), "disk")
             self.write_point_to_influxdb(virtual_memory_point)
             self.write_point_to_influxdb(disk_point)
-            self.write_docker_containers_stats("containers", False)
+            self.executor.submit(self.save_containers_info_to_influx, "containers", False)
             time.sleep(int(self.configuration['INFLUXDB_WRITE_INTERVAL_TIME']))
