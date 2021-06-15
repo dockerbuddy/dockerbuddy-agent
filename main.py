@@ -7,7 +7,6 @@ from agent import Agent
 
 CHECK_AGENT_INTERVAL_TIME = 5
 
-
 if __name__ == "__main__":
     agent = Agent()
     agent_thread = threading.Thread(target=agent.run, daemon=True)
