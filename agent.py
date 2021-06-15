@@ -1,6 +1,5 @@
 import time
 from concurrent.futures.thread import ThreadPoolExecutor
-
 import docker
 import yaml
 from influxdb_client import InfluxDBClient, Point, WritePrecision
