@@ -65,9 +65,9 @@ class MockAgent:
         attrs, stats = container.attrs, container.stats(stream=False)
         container_stats_point = Point(name) \
             .time(datetime.utcnow(), WritePrecision.NS) \
-            .field("id", attrs['Id']) \
-            .field("name", attrs['Name']) \
-            .field('image', attrs['Config']['Image']) \
+            .tag("id", attrs['Id']) \
+            .tag("name", attrs['Name']) \
+            .tag('image', attrs['Config']['Image']) \
             .field('status', attrs['State']['Status']) \
             .field('memory_usage', int(stats['memory_stats']['usage'])) \
             .field('cpu_percentage', self.calculate_cpu_percentage(stats))
@@ -116,8 +116,8 @@ class MockAgent:
 
     # ongoing function to save all the info to influxdb every 'INFLUXDB_WRITE_INTERVAL_TIME' seconds
     def run(self):
-        # self.executor.submit(self.get_mock_stats_from_user)
+        self.executor.submit(self.get_mock_stats_from_user)
         while True:
-            #self.executor.submit(self.save_host_stats_to_influx)
+            self.executor.submit(self.save_host_stats_to_influx)
             self.executor.submit(self.save_containers_stats_to_influx, "containers", True)
             time.sleep(int(self.configuration['INFLUXDB_WRITE_INTERVAL_TIME']))
