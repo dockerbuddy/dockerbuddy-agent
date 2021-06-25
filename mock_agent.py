@@ -75,8 +75,8 @@ class MockAgent:
         self.write_point_to_influxdb(container_stats_point)
 
     # saves statistics about all containers to influxdb
-    def save_containers_stats_to_influx(self, name, all):
-        containers = self.docker_client.containers.list(all=all)
+    def save_containers_stats_to_influx(self, name, every_container):
+        containers = self.docker_client.containers.list(all=every_container)
 
         for container in containers:
             self.executor.submit(self.write_container_point_to_influx, container, name)
@@ -116,8 +116,8 @@ class MockAgent:
 
     # ongoing function to save all the info to influxdb every 'INFLUXDB_WRITE_INTERVAL_TIME' seconds
     def run(self):
-        self.executor.submit(self.get_mock_stats_from_user)
+        # self.executor.submit(self.get_mock_stats_from_user)
         while True:
-            self.executor.submit(self.save_host_stats_to_influx)
-            #self.executor.submit(self.save_containers_stats_to_influx, "containers", False)
+            #self.executor.submit(self.save_host_stats_to_influx)
+            self.executor.submit(self.save_containers_stats_to_influx, "containers", True)
             time.sleep(int(self.configuration['INFLUXDB_WRITE_INTERVAL_TIME']))
