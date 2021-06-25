@@ -62,9 +62,9 @@ class Agent:
         attrs, stats = container.attrs, container.stats(stream=False)
         container_stats_point = Point(name) \
             .time(datetime.utcnow(), WritePrecision.NS) \
-            .field("id", attrs['Id']) \
-            .field("name", attrs['Name']) \
-            .field('image', attrs['Config']['Image']) \
+            .tag("id", attrs['Id']) \
+            .tag("name", attrs['Name']) \
+            .tag('image', attrs['Config']['Image']) \
             .field('status', attrs['State']['Status']) \
             .field('memory_usage', int(stats['memory_stats']['usage'])) \
             .field('cpu_percentage', self.calculate_cpu_percentage(stats))
