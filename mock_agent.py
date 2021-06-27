@@ -1,3 +1,4 @@
+import csv
 import time
 from concurrent.futures.thread import ThreadPoolExecutor
 import docker
@@ -6,7 +7,10 @@ from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import ASYNCHRONOUS
 from datetime import datetime
 
+from status_enum import Status
+
 CONFIG_FILENAME = 'config.yaml'
+MOCK_CONTAINERS_FILENAME = "container_stats.csv"
 MAX_WORKERS = 50
 
 
@@ -20,6 +24,7 @@ class MockAgent:
             self.influxdb_data_writer = self.influxdb_client.write_api(self.influxdb_write_options)
             self.docker_client = docker.from_env()
             self.executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
+            self.containers_info = self.get_containers_info_from_csv()
             self.total_virtual_memory = 4169125888
             self.total_disk_memory = 125910429696
             self.percent_virtual_memory = float("50")
@@ -33,6 +38,14 @@ class MockAgent:
     def get_configuration_from_yml(self):
         with open(CONFIG_FILENAME, 'r') as config:
             return yaml.load(config, Loader=yaml.BaseLoader)
+
+    def get_containers_info_from_csv(self):
+        with open(MOCK_CONTAINERS_FILENAME, 'r') as data:
+            containers = []
+            for line in csv.DictReader(data):
+                containers.append(line)
+
+        return containers
 
     # saves point https://docs.influxdata.com/influxdb/v2.0/reference/glossary/#point to database
     def write_point_to_influxdb(self, point):
@@ -54,31 +67,22 @@ class MockAgent:
             .field("used", used)\
             .field("percent", percent)
 
-    # calculate cpu percentage
-    def calculate_cpu_percentage(self, stats):
-        return abs(stats['cpu_stats']['cpu_usage']['total_usage'] -
-                   stats['precpu_stats']['cpu_usage']['total_usage']) * 100 \
-               / 10 ** 9  # Nanoseconds in one second
-
     # saves statistics about one container to influxdb
     def write_container_point_to_influx(self, container, name):
-        attrs, stats = container.attrs, container.stats(stream=False)
         container_stats_point = Point(name) \
             .time(datetime.utcnow(), WritePrecision.NS) \
-            .tag("id", attrs['Id']) \
-            .tag("name", attrs['Name']) \
-            .tag('image', attrs['Config']['Image']) \
-            .field('status', attrs['State']['Status']) \
-            .field('memory_usage', int(stats['memory_stats']['usage'])) \
-            .field('cpu_percentage', self.calculate_cpu_percentage(stats))
+            .tag("id", container['id']) \
+            .tag("name", container['name']) \
+            .tag('image', container['image']) \
+            .field('status', int(container['status'])) \
+            .field('memory_usage', int(container['memory_usage'])) \
+            .field('cpu_percentage', float(container['cpu_percentage']))
 
         self.write_point_to_influxdb(container_stats_point)
 
     # saves statistics about all containers to influxdb
-    def save_containers_stats_to_influx(self, name, every_container):
-        containers = self.docker_client.containers.list(all=every_container)
-
-        for container in containers:
+    def save_containers_stats_to_influx(self, name):
+        for container in self.containers_info:
             self.executor.submit(self.write_container_point_to_influx, container, name)
 
     # saves statistics about host system to influxdb
@@ -109,6 +113,25 @@ class MockAgent:
                 print(f"Virtual memory usage percentage set to : {virtual_percentage} %")
             except Exception as e:
                 print("Conversion failed")
+        elif line == "container":
+            print("Available containers")
+            for i in range(len(self.containers_info)):
+                print(f"{i} : {self.containers_info[i]['name']} : {Status(int(self.containers_info[i]['status']))}")
+            selected_container = int(input("Select container: "))
+
+            if selected_container not in range(len(self.containers_info)):
+                print("Invalid container")
+            else:
+                print("Available states")
+                for status in Status:
+                    print(f"{status.value} : {status.name}")
+                selected_status = input("Select status: ")
+
+                if int(selected_status) not in range(len(Status)):
+                    print("Invalid status")
+                else:
+                    self.containers_info[selected_container]['status'] = selected_status
+                    print(f"{self.containers_info[selected_container]['name']} changed status to {Status(int(selected_status))}")
         else:
             print("Incorrect command. Type help to get commands")
 
@@ -118,6 +141,8 @@ class MockAgent:
     def run(self):
         self.executor.submit(self.get_mock_stats_from_user)
         while True:
-            self.executor.submit(self.save_host_stats_to_influx)
-            self.executor.submit(self.save_containers_stats_to_influx, "containers", True)
+            #self.executor.submit(self.save_host_stats_to_influx)
+            self.executor.submit(self.save_containers_stats_to_influx, "containers")
             time.sleep(int(self.configuration['INFLUXDB_WRITE_INTERVAL_TIME']))
+
+
