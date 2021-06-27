@@ -7,6 +7,8 @@ from influxdb_client.client.write_api import ASYNCHRONOUS
 from datetime import datetime
 import psutil
 
+from status_enum import Status
+
 CONFIG_FILENAME = 'config.yaml'
 HOME_PATH = '/'
 MAX_WORKERS = 50
@@ -65,7 +67,7 @@ class Agent:
             .tag("id", attrs['Id']) \
             .tag("name", attrs['Name']) \
             .tag('image', attrs['Config']['Image']) \
-            .field('status', attrs['State']['Status']) \
+            .field('status', Status[attrs['State']['Status']].value) \
             .field('memory_usage', int(stats['memory_stats']['usage'])) \
             .field('cpu_percentage', self.calculate_cpu_percentage(stats))
 
