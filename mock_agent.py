@@ -141,7 +141,7 @@ class MockAgent:
     def run(self):
         self.executor.submit(self.get_mock_stats_from_user)
         while True:
-            #self.executor.submit(self.save_host_stats_to_influx)
+            self.executor.submit(self.save_host_stats_to_influx)
             self.executor.submit(self.save_containers_stats_to_influx, "containers")
             time.sleep(int(self.configuration['INFLUXDB_WRITE_INTERVAL_TIME']))
 
