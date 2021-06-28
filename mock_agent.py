@@ -6,7 +6,6 @@ import yaml
 from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import ASYNCHRONOUS
 from datetime import datetime
-
 from status_enum import Status
 
 CONFIG_FILENAME = 'config.yaml'
@@ -144,5 +143,3 @@ class MockAgent:
             self.executor.submit(self.save_host_stats_to_influx)
             self.executor.submit(self.save_containers_stats_to_influx, "containers")
             time.sleep(int(self.configuration['INFLUXDB_WRITE_INTERVAL_TIME']))
-
-
