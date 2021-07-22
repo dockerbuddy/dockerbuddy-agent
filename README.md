@@ -5,6 +5,7 @@
 ```
 $ pip install -r requirements.txt
 ```
+Create config.yaml with proper values
 
 ## Usage
 
