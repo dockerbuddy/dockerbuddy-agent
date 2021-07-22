@@ -1,5 +1,17 @@
 # dockiera-agent
 
+## Install
+
+```
+$ pip install -r requirements.txt
+```
+
+## Usage
+
+Run Agent by typing:
+```
+$ python main.py
+```
 You can use agent in two modes:
 - normal agent - monitor actual data from host and docker containers
 - mock agent - put sample data into influxdb. The data can be configured by user.
