@@ -139,4 +139,7 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
-/config.yaml
+
+#DEV FILES
+config.py
+.pre-commit-config.yaml
