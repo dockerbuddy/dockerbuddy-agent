@@ -3,8 +3,8 @@ Agent setup.
 """
 import threading
 import time
+
 from .agent import Agent
-from .mock_agent import MockAgent
 
 CHECK_AGENT_INTERVAL_TIME = 5
 
@@ -28,6 +28,7 @@ def start():
     if mode == "normal":
         run_agent(Agent())
     elif mode == "mock":
-        run_agent(MockAgent())
+        pass
+        # run_agent(MockAgent())
     else:
         print("Invalid command")
