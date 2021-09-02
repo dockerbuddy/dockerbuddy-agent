@@ -152,27 +152,6 @@ optional = false
 python-versions = ">=3.5"
 
 [[package]]
-name = "influxdb-client"
-version = "1.20.0"
-description = "InfluxDB 2.0 Python client library"
-category = "main"
-optional = false
-python-versions = ">=3.6"
-
-[package.dependencies]
-certifi = ">=14.05.14"
-python-dateutil = ">=2.5.3"
-pytz = ">=2019.1"
-rx = ">=3.0.1"
-six = ">=1.10"
-urllib3 = ">=1.15.1"
-
-[package.extras]
-ciso = ["ciso8601 (>=2.1.1)"]
-extra = ["pandas (>=0.25.3)", "numpy"]
-test = ["coverage (>=4.0.3)", "nose (>=1.3.7)", "pluggy (>=0.3.1)", "py (>=1.4.31)", "randomize (>=0.13)", "pytest (>=5.0.0)", "httpretty (==1.0.5)", "psutil (>=5.6.3)"]
-
-[[package]]
 name = "isort"
 version = "5.9.3"
 description = "A Python utility / library to sort Python imports."
@@ -290,25 +269,6 @@ python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 test = ["ipaddress", "mock", "unittest2", "enum34", "pywin32", "wmi"]
 
 [[package]]
-name = "python-dateutil"
-version = "2.8.2"
-description = "Extensions to the standard Python datetime module"
-category = "main"
-optional = false
-python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
-
-[package.dependencies]
-six = ">=1.5"
-
-[[package]]
-name = "pytz"
-version = "2021.1"
-description = "World timezone definitions, modern and historical"
-category = "main"
-optional = false
-python-versions = "*"
-
-[[package]]
 name = "pywin32"
 version = "227"
 description = "Python for Window Extensions"
@@ -349,14 +309,6 @@ urllib3 = ">=1.21.1,<1.27"
 [package.extras]
 socks = ["PySocks (>=1.5.6,!=1.5.7)", "win-inet-pton"]
 use_chardet_on_py3 = ["chardet (>=3.0.2,<5)"]
-
-[[package]]
-name = "rx"
-version = "3.2.0"
-description = "Reactive Extensions (Rx) for Python"
-category = "main"
-optional = false
-python-versions = ">=3.6.0"
 
 [[package]]
 name = "six"
@@ -460,7 +412,7 @@ dev = ["pytest (>=4.6.2)", "black (>=19.3b0)"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "a0223ee3623835ee01128c21790d6096de69ea04dbae57f5febba7eb4f750103"
+content-hash = "c5ad07b5bb1da83effc96cc60b4c97651ce7a8774b43b69ae54c0d0535eb495d"
 
 [metadata.files]
 "backports.entry-points-selectable" = [
@@ -514,10 +466,6 @@ identify = [
 idna = [
     {file = "idna-3.2-py3-none-any.whl", hash = "sha256:14475042e284991034cb48e06f6851428fb14c4dc953acd9be9a5e95c7b6dd7a"},
     {file = "idna-3.2.tar.gz", hash = "sha256:467fbad99067910785144ce333826c71fb0e63a425657295239737f7ecd125f3"},
-]
-influxdb-client = [
-    {file = "influxdb_client-1.20.0-py3-none-any.whl", hash = "sha256:8bf09f18c66f0554d4c003f4c9ef5e82e461f38f930cc53fed2abc1193130d30"},
-    {file = "influxdb_client-1.20.0.tar.gz", hash = "sha256:da734bb25e7064e03bf9699de502b4e02ef0304cddac7cb56cbd9d5d0c3a3bcd"},
 ]
 isort = [
     {file = "isort-5.9.3-py3-none-any.whl", hash = "sha256:e17d6e2b81095c9db0a03a8025a957f334d6ea30b26f9ec70805411e5c7c81f2"},
@@ -584,14 +532,6 @@ psutil = [
     {file = "psutil-5.8.0-cp39-cp39-win32.whl", hash = "sha256:ea372bcc129394485824ae3e3ddabe67dc0b118d262c568b4d2602a7070afdb0"},
     {file = "psutil-5.8.0-cp39-cp39-win_amd64.whl", hash = "sha256:f4634b033faf0d968bb9220dd1c793b897ab7f1189956e1aa9eae752527127d3"},
     {file = "psutil-5.8.0.tar.gz", hash = "sha256:0c9ccb99ab76025f2f0bbecf341d4656e9c1351db8cc8a03ccd62e318ab4b5c6"},
-]
-python-dateutil = [
-    {file = "python-dateutil-2.8.2.tar.gz", hash = "sha256:0123cacc1627ae19ddf3c27a5de5bd67ee4586fbdd6440d9748f8abb483d3e86"},
-    {file = "python_dateutil-2.8.2-py2.py3-none-any.whl", hash = "sha256:961d03dc3453ebbc59dbdea9e4e11c5651520a876d0f4db161e8674aae935da9"},
-]
-pytz = [
-    {file = "pytz-2021.1-py2.py3-none-any.whl", hash = "sha256:eb10ce3e7736052ed3623d49975ce333bcd712c7bb19a58b9e2089d4057d0798"},
-    {file = "pytz-2021.1.tar.gz", hash = "sha256:83a4a90894bf38e243cf052c8b58f381bfe9a7a483f6a9cab140bc7f702ac4da"},
 ]
 pywin32 = [
     {file = "pywin32-227-cp27-cp27m-win32.whl", hash = "sha256:371fcc39416d736401f0274dd64c2302728c9e034808e37381b5e1b22be4a6b0"},
@@ -684,10 +624,6 @@ regex = [
 requests = [
     {file = "requests-2.26.0-py2.py3-none-any.whl", hash = "sha256:6c1246513ecd5ecd4528a0906f910e8f0f9c6b8ec72030dc9fd154dc1a6efd24"},
     {file = "requests-2.26.0.tar.gz", hash = "sha256:b8aa58f8cf793ffd8782d3d8cb19e66ef36f7aba4353eec859e74678b01b07a7"},
-]
-rx = [
-    {file = "Rx-3.2.0-py3-none-any.whl", hash = "sha256:922c5f4edb3aa1beaa47bf61d65d5380011ff6adcd527f26377d05cb73ed8ec8"},
-    {file = "Rx-3.2.0.tar.gz", hash = "sha256:b657ca2b45aa485da2f7dcfd09fac2e554f7ac51ff3c2f8f2ff962ecd963d91c"},
 ]
 six = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},

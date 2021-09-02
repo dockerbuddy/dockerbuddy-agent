@@ -8,9 +8,9 @@ from dataclasses_json import LetterCase, dataclass_json
 @dataclass_json(letter_case=LetterCase.CAMEL)
 @dataclass
 class BasicMetric:
-    used: float
+    value: float
     total: float
-    percentage: float
+    percent: float
 
 
 @dataclass_json(letter_case=LetterCase.CAMEL)
@@ -28,7 +28,7 @@ class ContainerSummary:
 @dataclass
 class HostSummary:
     timestamp: datetime
-    virtual_memory_usage: BasicMetric
-    disk_memory_usage: BasicMetric
+    memory_usage: BasicMetric
+    disk_usage: BasicMetric
     cpu_usage: BasicMetric
     containers: List[ContainerSummary]

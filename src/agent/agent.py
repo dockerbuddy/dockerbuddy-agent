@@ -1,6 +1,6 @@
+import json
 import time
 from concurrent.futures.thread import ThreadPoolExecutor
-from dataclasses import asdict
 from datetime import datetime
 from typing import Any, List
 
@@ -9,13 +9,7 @@ import psutil
 from loguru import logger
 from requests import post
 
-from .config import (
-    BACKEND_ENDPOINT,
-    HOME_PATH,
-    HOST_ID,
-    INFLUXDB_WRITE_INTERVAL_TIME,
-    MAX_WORKERS,
-)
+from .config import BACKEND_ENDPOINT, HOME_PATH, HOST_ID, MAX_WORKERS, SLEEP_TIME
 from .dataclasses import BasicMetric, ContainerSummary, HostSummary
 
 
@@ -95,10 +89,11 @@ class Agent:
             timestamp, virtual_memory_usage, disk_memory_usage, cpu_usage, containers
         )
 
-    def send_summary_to_backend(host_id: str, endpoint: str, data: Any) -> Any:
+    def send_summary_to_backend(self, host_id: str, endpoint: str, data: Any) -> None:
         url = endpoint + host_id
-        response = post(url=url, data=data.to_json())
-        print(response.json())
+        headers = {"Content-type": "application/json", "Accept": "application/json"}
+        response = post(url=url, headers=headers, data=data.to_json())
+        print(response.status_code, response.reason)
 
     def run(self):
         while True:
@@ -106,4 +101,4 @@ class Agent:
             self.send_summary_to_backend(
                 host_id=HOST_ID, endpoint=BACKEND_ENDPOINT, data=host_summary
             )
-            time.sleep(INFLUXDB_WRITE_INTERVAL_TIME)
+            time.sleep(SLEEP_TIME)
