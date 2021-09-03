@@ -141,5 +141,4 @@ dmypy.json
 cython_debug/
 
 #DEV FILES
-config.py
 .pre-commit-config.yaml

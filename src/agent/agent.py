@@ -9,14 +9,12 @@ import psutil
 from loguru import logger
 from requests import post
 
-from .config import BACKEND_ENDPOINT, HOME_PATH, HOST_ID, MAX_WORKERS, SLEEP_TIME
+from .config import BACKEND_ENDPOINT, FETCH_FREQ, HOME_PATH, HOST_ID, MAX_WORKERS
 from .dataclasses import BasicMetric, ContainerSummary, HostSummary
 
 
 def get_metric_from_data(metric_name: str, data: Any) -> BasicMetric:
-    if metric_name == "virtual_memory":
-        return BasicMetric(data.used, data.total, data.percent)
-    elif metric_name == "disk_memory":
+    if metric_name in ["virtual_memory", "disk_memory"]:
         return BasicMetric(data.used, data.total, data.percent)
     elif metric_name == "host_cpu_usage":
         percentage = data
@@ -101,4 +99,4 @@ class Agent:
             self.send_summary_to_backend(
                 host_id=HOST_ID, endpoint=BACKEND_ENDPOINT, data=host_summary
             )
-            time.sleep(SLEEP_TIME)
+            time.sleep(FETCH_FREQ)
