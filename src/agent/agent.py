@@ -1,4 +1,3 @@
-import json
 import time
 from concurrent.futures.thread import ThreadPoolExecutor
 from datetime import datetime
@@ -6,41 +5,10 @@ from typing import Any, List
 
 import docker
 import psutil
-from loguru import logger
-from requests import post
 
+from .common import get_metric_from_data, send_summary_to_backend
 from .config import BACKEND_ENDPOINT, FETCH_FREQ, HOME_PATH, HOST_ID, MAX_WORKERS
-from .dataclasses import BasicMetric, ContainerSummary, HostSummary
-
-
-def get_metric_from_data(metric_name: str, data: Any) -> BasicMetric:
-    if metric_name in ["virtual_memory", "disk_memory"]:
-        return BasicMetric(data.used, data.total, data.percent)
-    elif metric_name == "host_cpu_usage":
-        percentage = data
-        return BasicMetric(percentage, 100, percentage)
-    elif metric_name == "container_cpu_usage":
-        # NOTE (@bplewnia) - Divide by number of nanoseconds in second -> 10e9
-        percentage = (
-            abs(
-                data["cpu_stats"]["cpu_usage"]["total_usage"]
-                - data["precpu_stats"]["cpu_usage"]["total_usage"]
-            )
-            * 100
-            / 10 ** 9
-        )
-        return BasicMetric(percentage, 100, percentage)
-    elif metric_name == "container_memory_usage":
-        return (
-            BasicMetric(0, 0, 0)
-            if not data
-            else BasicMetric(
-                data["usage"], data["limit"], (data["usage"] / data["limit"]) * 100
-            )
-        )
-    else:
-        logger.error(f"DID NOT FIND OPTION FOR {metric_name}")
-        return None
+from .dataclasses import ContainerSummary, HostSummary
 
 
 class Agent:
@@ -87,16 +55,10 @@ class Agent:
             timestamp, virtual_memory_usage, disk_memory_usage, cpu_usage, containers
         )
 
-    def send_summary_to_backend(self, host_id: str, endpoint: str, data: Any) -> None:
-        url = endpoint + host_id
-        headers = {"Content-type": "application/json", "Accept": "application/json"}
-        response = post(url=url, headers=headers, data=data.to_json())
-        print(response.status_code, response.reason)
-
     def run(self):
         while True:
             host_summary = self.get_host_summary()
-            self.send_summary_to_backend(
+            send_summary_to_backend(
                 host_id=HOST_ID, endpoint=BACKEND_ENDPOINT, data=host_summary
             )
             time.sleep(FETCH_FREQ)

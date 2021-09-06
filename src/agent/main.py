@@ -1,12 +1,9 @@
-"""
-Agent setup.
-"""
 import threading
 import time
 
 from .agent import Agent
-
-CHECK_AGENT_INTERVAL_TIME = 5
+from .config import CHECK_IF_AGENT_ALIVE_TIME
+from .mock_agent import MockAgent
 
 
 def run_agent(agent_constructor):
@@ -15,7 +12,7 @@ def run_agent(agent_constructor):
     agent_thread.start()
 
     while True:
-        time.sleep(CHECK_AGENT_INTERVAL_TIME)
+        time.sleep(CHECK_IF_AGENT_ALIVE_TIME)
         if not agent_thread.is_alive():
             agent = agent_constructor
             agent_thread = threading.Thread(target=agent.run, daemon=True)
@@ -28,7 +25,6 @@ def start():
     if mode == "normal":
         run_agent(Agent())
     elif mode == "mock":
-        pass
-        # run_agent(MockAgent())
+        run_agent(MockAgent())
     else:
         print("Invalid command")
