@@ -1,30 +1,28 @@
 # dockiera-agent
 
-## Install
+## Installation
 
+### Clone repository
 ```
-$ pip install -r requirements.txt
+$ git clone https://github.com/agh-docker-monitoring/dockiera-agent.git
 ```
-Create config.yaml with proper values
+
+### Poetry installation
+- Linux: ```curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -```
+- Mac: ```brew install poetry```
+- Windows:
+    1. Enter Powershell
+    1. Run: ```(Invoke-WebRequest -Uri https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py -UseBasicParsing).Content | python -```
+
+Then install project dependencies with poetry:
+* ```$ cd dockiera-agent```
+* ```$ poetry install```
 
 ## Usage
+Run Agent/MockAgent by:
 
-Run Agent by typing:
-```
-$ python main.py
-```
+```$ poetry run start```
+
 You can use agent in two modes:
 - normal agent - monitor actual data from host and docker containers
 - mock agent - put sample data into influxdb. The data can be configured by user.
-
-Docker container status - 
-Instead of saving docker container status as string we made Enum Status and save it as integer.
-
-The Status Enum:
-- created = 0
-- restarting = 1
-- running = 2
-- removing = 3
-- paused = 4
-- exited = 5
-- dead = 6  
