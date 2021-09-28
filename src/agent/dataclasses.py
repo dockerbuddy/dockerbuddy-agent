@@ -8,7 +8,7 @@ from dataclasses_json import LetterCase, dataclass_json
 @dataclass_json(letter_case=LetterCase.CAMEL)
 @dataclass
 class BasicMetric:
-    value: float
+    used: float
     total: float
     percent: float
 
