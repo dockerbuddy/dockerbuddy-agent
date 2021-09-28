@@ -25,4 +25,6 @@ AVAILABLE_STATES = [
 ]
 
 # BACKEND
-BACKEND_ENDPOINT = "http://localhost:8080/api/v2/metrics/"
+BACKEND_ENDPOINT = "localhost:8080/api/v2/metrics/"
+
+# ID backend_endpoint
