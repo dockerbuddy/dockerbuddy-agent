@@ -33,11 +33,7 @@ You can use agent in two modes:
 Run Agent in Docker environment:
 
 1. Build an image:
-```docker build -t dockiera-agent-image .
-
-```
+```docker build -t dockiera-agent-image .```
 
 2. Run container:
-```docker run --name dockiera-agent-container --network=dockiera-app_default  -v /var/run/docker.sock:/var/run/docker.sock dockiera-agent-image
-
-```
+```docker run --name dockiera-agent-container --network=dockiera-app_default  -v /var/run/docker.sock:/var/run/docker.sock dockiera-agent-image```
