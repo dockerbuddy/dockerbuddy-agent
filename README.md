@@ -23,3 +23,7 @@ Then install project dependencies with poetry:
 # Run mock agent
 Run MockAgent by:
 ```$ poetry run mock```
+
+# Run normal agent
+Run Agent by:
+```$ ./run```
