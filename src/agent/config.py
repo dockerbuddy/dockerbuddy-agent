@@ -2,7 +2,6 @@ from pathlib import Path
 
 # SLEEP TIMES
 FETCH_FREQ = 10
-CHECK_IF_AGENT_ALIVE_TIME = 30
 
 # DEV
 HOME_PATH = Path("/")
@@ -25,4 +24,4 @@ AVAILABLE_STATES = [
 
 # BACKEND
 HOST_ID = "1"
-BACKEND_ENDPOINT = "http://backend:8080/api/v2/metrics"
+BACKEND_ENDPOINT = "http://localhost:8080/api/v2/metrics"
