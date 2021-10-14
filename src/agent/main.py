@@ -20,11 +20,4 @@ def run_agent(agent_constructor):
 
 
 def start():
-    mode = input("Select mode [normal | mock]: ")
-
-    if mode == "normal":
-        run_agent(Agent())
-    elif mode == "mock":
-        run_agent(MockAgent())
-    else:
-        print("Invalid command")
+    run_agent(Agent())

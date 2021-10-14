@@ -27,6 +27,7 @@ class ContainerSummary:
 @dataclass_json(letter_case=LetterCase.CAMEL)
 @dataclass
 class HostSummary:
+    id: str
     timestamp: datetime
     memory_usage: BasicMetric
     disk_usage: BasicMetric
