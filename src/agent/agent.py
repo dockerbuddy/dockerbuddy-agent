@@ -52,13 +52,16 @@ class Agent:
         containers = self.get_containers_summary()
         timestamp = datetime.now()
         return HostSummary(
-            timestamp, virtual_memory_usage, disk_memory_usage, cpu_usage, containers
+            HOST_ID,
+            timestamp,
+            virtual_memory_usage,
+            disk_memory_usage,
+            cpu_usage,
+            containers,
         )
 
     def run(self):
         while True:
             host_summary = self.get_host_summary()
-            send_summary_to_backend(
-                host_id=HOST_ID, endpoint=BACKEND_ENDPOINT, data=host_summary
-            )
+            send_summary_to_backend(endpoint=BACKEND_ENDPOINT, data=host_summary)
             time.sleep(FETCH_FREQ)

@@ -6,15 +6,13 @@ from requests.api import post
 from .dataclasses import BasicMetric
 
 
-def send_summary_to_backend(host_id: str, endpoint: str, data: Any) -> None:
+def send_summary_to_backend(endpoint: str, data: Any) -> None:
     try:
-        url = endpoint + host_id
-        # Send host id as a part of the body
         headers = {"Content-type": "application/json", "Accept": "application/json"}
-        response = post(url=url, headers=headers, data=data.to_json())
-        logger.info(f"SENT SUMMARY TO {url}. STATUS CODE: {response.status_code}")
+        response = post(url=endpoint, headers=headers, data=data.to_json())
+        logger.info(f"SENT SUMMARY TO {endpoint}. STATUS CODE: {response.status_code}")
     except Exception as e:
-        logger.error(f"FAILED TO SEND SUMMARY TO {url} due to {e}")
+        logger.error(f"FAILED TO SEND SUMMARY TO {endpoint}")
 
 
 def get_metric_from_data(metric_name: str, data: Any) -> BasicMetric:
