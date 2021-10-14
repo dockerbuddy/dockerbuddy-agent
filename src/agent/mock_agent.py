@@ -1,7 +1,7 @@
 import csv
+import sys
 import time
 from concurrent.futures.thread import ThreadPoolExecutor
-from datetime import datetime
 from typing import List
 
 from .common import send_summary_to_backend
@@ -10,7 +10,6 @@ from .config import (
     BACKEND_ENDPOINT,
     DISK_MEM_TOTAL,
     FETCH_FREQ,
-    HOME_PATH,
     HOST_ID,
     MAX_WORKERS,
     MOCK_CONTAINERS_FILE,
@@ -29,6 +28,7 @@ class MockAgent:
         self.percent_virt_mem = STARTING_PERCENT
         self.percent_disk_mem = STARTING_PERCENT
         self.percent_cpu = STARTING_PERCENT / 10
+        self.percent_container = STARTING_PERCENT
 
         self.containers_info = self.get_containers_info_from_csv()
 
@@ -53,7 +53,7 @@ class MockAgent:
             print("Conversion failed")
 
     def get_mock_stats_from_user(self):
-        available_commands = "disk mem | virt mem | cpu | container"
+        available_commands = "disk mem | virt mem | cpu | container | exit"
         line = input(
             f"Available commands : {available_commands}\n Type in your command: "
         )
@@ -81,6 +81,8 @@ class MockAgent:
                     print(
                         f"{self.containers_info[selected_container]['name']} changed status to {selected_status}"
                     )
+        elif line == "exit":
+            sys.exit()
         else:
             print("Incorrect command")
 
@@ -89,13 +91,18 @@ class MockAgent:
     def get_containers_summary(self) -> List[ContainerSummary]:
         summaries = []
         for container_info in self.containers_info:
+            mem = int(container_info["memory_usage"])
+            cpu_percent = container_info["cpu_usage"]
+
             container_summary = ContainerSummary(
                 id=container_info["id"],
                 name=container_info["name"],
                 image=container_info["image"],
                 status=container_info["status"],
-                memory_usage=container_info["memory_usage"],
-                cpu_usage=container_info["cpu_usage"],
+                memory_usage=BasicMetric(
+                    mem * self.percent_container / 100, mem, self.percent_container
+                ),
+                cpu_usage=BasicMetric(cpu_percent, 100, cpu_percent),
             )
 
             summaries.append(container_summary)
@@ -114,17 +121,20 @@ class MockAgent:
         )
         cpu_usage = BasicMetric(self.percent_cpu, 100, self.percent_cpu)
         containers = self.get_containers_summary()
-        timestamp = datetime.now()
+        timestamp = time.time()
         return HostSummary(
-            timestamp, virtual_memory_usage, disk_memory_usage, cpu_usage, containers
+            HOST_ID,
+            timestamp,
+            virtual_memory_usage,
+            disk_memory_usage,
+            cpu_usage,
+            containers,
         )
 
     def send_summary(self) -> None:
         while True:
             host_summary = self.get_host_summary()
-            send_summary_to_backend(
-                host_id=HOST_ID, endpoint=BACKEND_ENDPOINT, data=host_summary
-            )
+            send_summary_to_backend(endpoint=BACKEND_ENDPOINT, data=host_summary)
             time.sleep(FETCH_FREQ)
 
     def run(self):

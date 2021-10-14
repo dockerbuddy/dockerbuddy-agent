@@ -19,6 +19,8 @@ Then install project dependencies with poetry:
 * ```$ poetry install```
 
 ## Usage
+
+# Deprecated
 Run Agent/MockAgent by:
 
 ```$ poetry run start```
@@ -26,3 +28,12 @@ Run Agent/MockAgent by:
 You can use agent in two modes:
 - normal agent - monitor actual data from host and docker containers
 - mock agent - put sample data into influxdb. The data can be configured by user.
+
+# Active
+Run Agent in Docker environment:
+
+1. Build an image:
+```docker build -t dockiera-agent-image .```
+
+2. Run container:
+```docker run --name dockiera-agent-container --network=dockiera-app_default  -v /var/run/docker.sock:/var/run/docker.sock dockiera-agent-image```

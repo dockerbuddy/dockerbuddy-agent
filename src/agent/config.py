@@ -6,7 +6,6 @@ CHECK_IF_AGENT_ALIVE_TIME = 30
 
 # DEV
 HOME_PATH = Path("/")
-HOST_ID = "123456789"
 MAX_WORKERS = 50
 
 # MOCK AGENT
@@ -25,4 +24,5 @@ AVAILABLE_STATES = [
 ]
 
 # BACKEND
-BACKEND_ENDPOINT = "http://localhost:8080/api/v2/metrics/"
+HOST_ID = "1"
+BACKEND_ENDPOINT = "http://backend:8080/api/v2/metrics"
