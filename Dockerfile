@@ -17,4 +17,4 @@ RUN poetry install --no-interaction --no-ansi --no-root
 
 COPY . /app
 
-ENTRYPOINT [ "poetry", "run", "start" ]
+ENTRYPOINT [ "poetry", "run", "normal" ]

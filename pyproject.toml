@@ -22,7 +22,8 @@ requests = "^2.26.0"
 [tool.poetry.dev-dependencies]
 
 [tool.poetry.scripts]
-start = "src.agent.main:start"
+mock = "src.agent.main:run_mock_agent"
+normal = "src.agent.main:run_normal_agent"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
