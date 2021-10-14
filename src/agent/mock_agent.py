@@ -9,7 +9,6 @@ from .config import (
     AVAILABLE_STATES,
     BACKEND_ENDPOINT,
     DISK_MEM_TOTAL,
-    FETCH_FREQ,
     HOST_ID,
     MAX_WORKERS,
     MOCK_CONTAINERS_FILE,
@@ -53,7 +52,7 @@ class MockAgent:
             print("Conversion failed")
 
     def get_mock_stats_from_user(self):
-        available_commands = "disk mem | virt mem | cpu | container | exit"
+        available_commands = "disk mem | virt mem | cpu | container | send | exit"
         line = input(
             f"Available commands : {available_commands}\n Type in your command: "
         )
@@ -81,6 +80,9 @@ class MockAgent:
                     print(
                         f"{self.containers_info[selected_container]['name']} changed status to {selected_status}"
                     )
+        elif line == "send":
+            host_summary = self.get_host_summary()
+            send_summary_to_backend(endpoint=BACKEND_ENDPOINT, data=host_summary)
         elif line == "exit":
             sys.exit()
         else:
@@ -131,12 +133,5 @@ class MockAgent:
             containers,
         )
 
-    def send_summary(self) -> None:
-        while True:
-            host_summary = self.get_host_summary()
-            send_summary_to_backend(endpoint=BACKEND_ENDPOINT, data=host_summary)
-            time.sleep(FETCH_FREQ)
-
     def run(self):
         self.executor.submit(self.get_mock_stats_from_user)
-        self.executor.submit(self.send_summary)
