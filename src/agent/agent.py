@@ -8,7 +8,7 @@ import docker
 import psutil
 
 from .common import get_metric_from_data, send_summary_to_backend
-from .config import BACKEND_ENDPOINT, FETCH_FREQ, HOME_PATH, HOST_ID, MAX_WORKERS
+from .config import FETCH_FREQ, HOME_PATH, MAX_WORKERS
 from .dataclasses import ContainerSummary, HostSummary
 
 
