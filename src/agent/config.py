@@ -22,7 +22,3 @@ AVAILABLE_STATES = [
     "exited",
     "dead",
 ]
-
-# BACKEND
-HOST_ID = "1"
-BACKEND_ENDPOINT = "http://backend:8080/api/v2/metrics"

@@ -1,3 +1,4 @@
+import os
 import time
 from concurrent.futures.thread import ThreadPoolExecutor
 from datetime import datetime
@@ -15,6 +16,9 @@ class Agent:
     def __init__(self):
         self.docker_client = docker.from_env()
         self.executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
+
+        self.host_id = os.environ["HOST_ID"]
+        self.backend_endpoint = os.environ["BACKEND_ENDPOINT"]
 
     def get_containers_summary(self) -> List[ContainerSummary]:
         summaries = []
@@ -52,7 +56,7 @@ class Agent:
         containers = self.get_containers_summary()
         timestamp = datetime.now()
         return HostSummary(
-            HOST_ID,
+            self.host_id,
             timestamp,
             virtual_memory_usage,
             disk_memory_usage,
@@ -63,5 +67,5 @@ class Agent:
     def run(self):
         while True:
             host_summary = self.get_host_summary()
-            send_summary_to_backend(endpoint=BACKEND_ENDPOINT, data=host_summary)
+            send_summary_to_backend(endpoint=self.backend_endpoint, data=host_summary)
             time.sleep(FETCH_FREQ)

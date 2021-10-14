@@ -1,4 +1,5 @@
 import csv
+import os
 import sys
 import time
 from concurrent.futures.thread import ThreadPoolExecutor
@@ -7,10 +8,8 @@ from typing import List
 from .common import send_summary_to_backend
 from .config import (
     AVAILABLE_STATES,
-    BACKEND_ENDPOINT,
     DISK_MEM_TOTAL,
     FETCH_FREQ,
-    HOST_ID,
     MAX_WORKERS,
     MOCK_CONTAINERS_FILE,
     STARTING_PERCENT,
@@ -31,6 +30,9 @@ class MockAgent:
         self.percent_container = STARTING_PERCENT
 
         self.containers_info = self.get_containers_info_from_csv()
+
+        self.host_id = os.environ["HOST_ID"]
+        self.backend_endpoint = os.environ["BACKEND_ENDPOINT"]
 
     def get_containers_info_from_csv(self):
         with MOCK_CONTAINERS_FILE.open() as f:
@@ -123,7 +125,7 @@ class MockAgent:
         containers = self.get_containers_summary()
         timestamp = time.time()
         return HostSummary(
-            HOST_ID,
+            self.host_id,
             timestamp,
             virtual_memory_usage,
             disk_memory_usage,
@@ -134,7 +136,7 @@ class MockAgent:
     def send_summary(self) -> None:
         while True:
             host_summary = self.get_host_summary()
-            send_summary_to_backend(endpoint=BACKEND_ENDPOINT, data=host_summary)
+            send_summary_to_backend(endpoint=self.backend_endpoint, data=host_summary)
             time.sleep(FETCH_FREQ)
 
     def run(self):
