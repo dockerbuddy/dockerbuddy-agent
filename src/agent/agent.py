@@ -54,7 +54,12 @@ class Agent:
             metric_name="host_cpu_usage", data=psutil.cpu_percent()
         )
         containers = self.get_containers_summary()
-        timestamp = datetime.now()
+        timestamp = (
+            datetime.datetime.now(datetime.timezone.utc)
+            .replace(microsecond=0, tzinfo=None)
+            .isoformat()
+            + "Z"
+        )
         return HostSummary(
             id=self.host_id,
             timestamp=timestamp,

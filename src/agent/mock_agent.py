@@ -1,4 +1,5 @@
 import csv
+import datetime
 import sys
 import time
 from concurrent.futures.thread import ThreadPoolExecutor
@@ -134,7 +135,12 @@ class MockAgent:
             MetricType.cpu_usage, self.percent_cpu, 100, self.percent_cpu
         )
         containers = self.get_containers_summary()
-        timestamp = time.time()
+        timestamp = (
+            datetime.datetime.now(datetime.timezone.utc)
+            .replace(microsecond=0, tzinfo=None)
+            .isoformat()
+            + "Z"
+        )
         return HostSummary(
             id=HOST_ID,
             timestamp=timestamp,
