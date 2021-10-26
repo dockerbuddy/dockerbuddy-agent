@@ -26,10 +26,10 @@ class Agent:
         containers_data = self.docker_client.containers.list(all=True)
         for c in containers_data:
             attrs, stats = c.attrs, c.stats(stream=False)
-            memory_usage = get_metric_from_data(
+            virtual_memory_metric = get_metric_from_data(
                 metric_name="container_memory_usage", data=stats["memory_stats"]
             )
-            cpu_usage = get_metric_from_data(
+            cpu_metric = get_metric_from_data(
                 metric_name="container_cpu_usage", data=stats
             )
             container_summary = ContainerSummary(
@@ -37,32 +37,29 @@ class Agent:
                 name=attrs["Name"],
                 image=attrs["Config"]["Image"],
                 status=attrs["State"]["Status"],
-                memory_usage=memory_usage,
-                cpu_usage=cpu_usage,
+                metrics=[virtual_memory_metric, cpu_metric],
             )
 
             summaries.append(container_summary)
         return summaries
 
     def get_host_summary(self) -> HostSummary:
-        virtual_memory_usage = get_metric_from_data(
+        virtual_memory_metric = get_metric_from_data(
             metric_name="virtual_memory", data=psutil.virtual_memory()
         )
-        disk_memory_usage = get_metric_from_data(
+        disk_memory_metric = get_metric_from_data(
             metric_name="disk_memory", data=psutil.disk_usage(HOME_PATH)
         )
-        cpu_usage = get_metric_from_data(
+        cpu_metric = get_metric_from_data(
             metric_name="host_cpu_usage", data=psutil.cpu_percent()
         )
         containers = self.get_containers_summary()
         timestamp = datetime.now()
         return HostSummary(
-            self.host_id,
-            timestamp,
-            virtual_memory_usage,
-            disk_memory_usage,
-            cpu_usage,
-            containers,
+            id=self.host_id,
+            timestamp=timestamp,
+            metrics=[virtual_memory_metric, disk_memory_metric, cpu_metric],
+            containers=containers,
         )
 
     def run(self):

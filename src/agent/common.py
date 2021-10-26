@@ -3,12 +3,13 @@ from typing import Any
 from loguru import logger
 from requests.api import post
 
-from .dataclasses import BasicMetric
+from .dataclasses import BasicMetric, MetricType
 
 
 def send_summary_to_backend(endpoint: str, data: Any) -> None:
     try:
         headers = {"Content-type": "application/json", "Accept": "application/json"}
+        print(data.to_json())
         response = post(url=endpoint, headers=headers, data=data.to_json())
         logger.info(f"SENT SUMMARY TO {endpoint}. STATUS CODE: {response.status_code}")
     except Exception as e:
@@ -16,11 +17,13 @@ def send_summary_to_backend(endpoint: str, data: Any) -> None:
 
 
 def get_metric_from_data(metric_name: str, data: Any) -> BasicMetric:
-    if metric_name in ["virtual_memory", "disk_memory"]:
-        return BasicMetric(data.used, data.total, data.percent)
+    if metric_name == "virtual_memory":
+        return BasicMetric(MetricType.memory_usage, data.used, data.total, data.percent)
+    elif metric_name == "disk_memory":
+        return BasicMetric(MetricType.disk_usage, data.used, data.total, data.percent)
     elif metric_name == "host_cpu_usage":
         percentage = data
-        return BasicMetric(percentage, 100, percentage)
+        return BasicMetric(MetricType.cpu_usage, percentage, 100, percentage)
     elif metric_name == "container_cpu_usage":
         # NOTE (@bplewnia) - Divide by number of nanoseconds in second -> 10e9
         percentage = (
@@ -31,15 +34,18 @@ def get_metric_from_data(metric_name: str, data: Any) -> BasicMetric:
             * 100
             / 10 ** 9
         )
-        return BasicMetric(percentage, 100, percentage)
+        return BasicMetric(MetricType.cpu_usage, percentage, 100, percentage)
     elif metric_name == "container_memory_usage":
         return (
-            BasicMetric(0, 0, 0)
+            BasicMetric(MetricType.memory_usage, 0, 0, 0)
             if not data
             else BasicMetric(
-                data["usage"], data["limit"], (data["usage"] / data["limit"]) * 100
+                MetricType.memory_usage,
+                data["usage"],
+                data["limit"],
+                (data["usage"] / data["limit"]) * 100,
             )
         )
     else:
         logger.error(f"DID NOT FIND OPTION FOR {metric_name}")
-        return BasicMetric(0, 0, 0)
+        return BasicMetric(MetricType.cpu_usage, 0, 0, 0)
