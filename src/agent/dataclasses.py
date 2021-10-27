@@ -7,9 +7,9 @@ from dataclasses_json import LetterCase, dataclass_json
 
 
 class MetricType(enum.Enum):
-    memory_usage = "memory_usage"
-    disk_usage = "disk_usage"
-    cpu_usage = "cpu_usage"
+    memory_usage = "MEMORY_USAGE"
+    disk_usage = "DISK_USAGE"
+    cpu_usage = "CPU_USAGE"
 
 
 @dataclass_json(letter_case=LetterCase.CAMEL)
