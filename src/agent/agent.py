@@ -9,7 +9,7 @@ import psutil
 
 from .common import get_iso_timestamp, get_metric_from_data, send_summary_to_backend
 from .config import HOME_PATH, MAX_WORKERS
-from .dataclasses import ContainerSummary, HostSummary
+from .dataclasses import ContainerState, ContainerSummary, HostSummary
 
 
 class Agent:
@@ -36,7 +36,7 @@ class Agent:
                 id=attrs["Id"],
                 name=attrs["Name"],
                 image=attrs["Config"]["Image"],
-                status=attrs["State"]["Status"],
+                status=ContainerState[attrs["State"]["Status"]].name,
                 metrics=[virtual_memory_metric, cpu_metric],
             )
 

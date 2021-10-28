@@ -6,6 +6,16 @@ from typing import List
 from dataclasses_json import LetterCase, dataclass_json
 
 
+class ContainerState(enum.Enum):
+    restarting = "RESTARTING"
+    dead = "DEAD"
+    created = "CREATED"
+    exited = "EXITED"
+    paused = "PAUSED"
+    running = "RUNNING"
+    removing = "REMOVING"
+
+
 class MetricType(enum.Enum):
     memory_usage = "MEMORY_USAGE"
     disk_usage = "DISK_USAGE"
