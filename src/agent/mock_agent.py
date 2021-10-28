@@ -1,10 +1,11 @@
 import csv
+import datetime
 import sys
 import time
 from concurrent.futures.thread import ThreadPoolExecutor
 from typing import List
 
-from .common import send_summary_to_backend
+from .common import get_iso_timestamp, send_summary_to_backend
 from .config import (
     AVAILABLE_STATES,
     BACKEND_ENDPOINT,
@@ -15,7 +16,7 @@ from .config import (
     STARTING_PERCENT,
     VIRT_MEM_TOTAL,
 )
-from .dataclasses import BasicMetric, ContainerSummary, HostSummary
+from .dataclasses import BasicMetric, ContainerSummary, HostSummary, MetricType
 
 
 class MockAgent:
@@ -96,41 +97,49 @@ class MockAgent:
             mem = int(container_info["memory_usage"])
             cpu_percent = container_info["cpu_usage"]
 
+            virtual_memory_metric = BasicMetric(
+                MetricType.memory_usage,
+                mem * self.percent_container / 100,
+                mem,
+                self.percent_container,
+            )
+            cpu_metric = BasicMetric(
+                MetricType.cpu_usage, cpu_percent, 100, cpu_percent
+            )
+
             container_summary = ContainerSummary(
                 id=container_info["id"],
                 name=container_info["name"],
                 image=container_info["image"],
                 status=container_info["status"],
-                memory_usage=BasicMetric(
-                    mem * self.percent_container / 100, mem, self.percent_container
-                ),
-                cpu_usage=BasicMetric(cpu_percent, 100, cpu_percent),
+                metrics=[virtual_memory_metric, cpu_metric],
             )
 
             summaries.append(container_summary)
         return summaries
 
     def get_host_summary(self) -> HostSummary:
-        virtual_memory_usage = BasicMetric(
+        virtual_memory_metric = BasicMetric(
+            MetricType.memory_usage,
             self.total_virt_mem * self.percent_virt_mem / 100,
             self.total_virt_mem,
             self.percent_virt_mem,
         )
-        disk_memory_usage = BasicMetric(
+        disk_memory_metric = BasicMetric(
+            MetricType.disk_usage,
             self.total_disk_mem * self.percent_disk_mem / 100,
             self.total_disk_mem,
             self.percent_disk_mem,
         )
-        cpu_usage = BasicMetric(self.percent_cpu, 100, self.percent_cpu)
+        cpu_metric = BasicMetric(
+            MetricType.cpu_usage, self.percent_cpu, 100, self.percent_cpu
+        )
         containers = self.get_containers_summary()
-        timestamp = time.time()
         return HostSummary(
-            HOST_ID,
-            timestamp,
-            virtual_memory_usage,
-            disk_memory_usage,
-            cpu_usage,
-            containers,
+            id=HOST_ID,
+            timestamp=get_iso_timestamp(),
+            metrics=[virtual_memory_metric, disk_memory_metric, cpu_metric],
+            containers=containers,
         )
 
     def run(self):

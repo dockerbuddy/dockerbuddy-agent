@@ -24,4 +24,4 @@ AVAILABLE_STATES = [
 
 # BACKEND
 HOST_ID = "1"
-BACKEND_ENDPOINT = "http://backend:8080/api/v2/metrics"
+BACKEND_ENDPOINT = "http://localhost:8080/api/v2/metrics"
