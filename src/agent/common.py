@@ -1,3 +1,4 @@
+import datetime
 from typing import Any
 
 from loguru import logger
@@ -9,7 +10,6 @@ from .dataclasses import BasicMetric, MetricType
 def send_summary_to_backend(endpoint: str, data: Any) -> None:
     try:
         headers = {"Content-type": "application/json", "Accept": "application/json"}
-        print(data.to_json())
         response = post(url=endpoint, headers=headers, data=data.to_json())
         logger.info(f"SENT SUMMARY TO {endpoint}. STATUS CODE: {response.status_code}")
     except Exception as e:
@@ -49,3 +49,12 @@ def get_metric_from_data(metric_name: str, data: Any) -> BasicMetric:
     else:
         logger.error(f"DID NOT FIND OPTION FOR {metric_name}")
         return BasicMetric(MetricType.cpu_usage, 0, 0, 0)
+
+
+def get_iso_timestamp() -> str:
+    return (
+        datetime.datetime.now(datetime.timezone.utc)
+        .replace(microsecond=0, tzinfo=None)
+        .isoformat()
+        + "Z"
+    )

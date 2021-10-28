@@ -5,7 +5,7 @@ import time
 from concurrent.futures.thread import ThreadPoolExecutor
 from typing import List
 
-from .common import send_summary_to_backend
+from .common import get_iso_timestamp, send_summary_to_backend
 from .config import (
     AVAILABLE_STATES,
     BACKEND_ENDPOINT,
@@ -135,15 +135,9 @@ class MockAgent:
             MetricType.cpu_usage, self.percent_cpu, 100, self.percent_cpu
         )
         containers = self.get_containers_summary()
-        timestamp = (
-            datetime.datetime.now(datetime.timezone.utc)
-            .replace(microsecond=0, tzinfo=None)
-            .isoformat()
-            + "Z"
-        )
         return HostSummary(
             id=HOST_ID,
-            timestamp=timestamp,
+            timestamp=get_iso_timestamp(),
             metrics=[virtual_memory_metric, disk_memory_metric, cpu_metric],
             containers=containers,
         )
