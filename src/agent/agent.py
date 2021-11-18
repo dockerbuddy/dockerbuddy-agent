@@ -2,24 +2,56 @@ import os
 import time
 from concurrent.futures.thread import ThreadPoolExecutor
 from datetime import datetime
-from typing import Any, List
+from typing import Any, Dict, List, cast
 
 import docker
 import psutil
+from decouple import config
 
 from .common import get_iso_timestamp, get_metric_from_data, send_summary_to_backend
 from .config import HOME_PATH, MAX_WORKERS
-from .dataclasses import ContainerState, ContainerSummary, HostSummary
+from .dataclasses import (
+    BasicMetric,
+    ContainerState,
+    ContainerSummary,
+    HostSummary,
+    MetricType,
+)
 
 
 class Agent:
     def __init__(self):
         self.docker_client = docker.from_env()
         self.executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
+        self.prev_network_in_value = psutil.net_io_counters().bytes_recv
+        self.prev_network_out_value = psutil.net_io_counters().bytes_sent
 
-        self.host_id = os.environ["HOST_ID"]
-        self.backend_endpoint = os.environ["BACKEND_ENDPOINT"]
-        self.fetch_freq = int(os.environ["FETCH_FREQ"])
+        self.network_in_max = 1
+        self.network_out_max = 1
+
+        self.host_id = config("HOST_ID", default="1")
+        self.backend_endpoint = config(
+            "BACKEND_ENDPOINT", default="http://localhost:8080/api/v2/metrics"
+        )
+        self.fetch_freq = config("FETCH_FREQ", default=10, cast=int)
+
+    def get_network_metric(
+        self, metric_name: str, data: int, prev_value: int, curr_max: int
+    ) -> BasicMetric:
+        value = data - prev_value
+        total = max(value, curr_max)
+        if metric_name == "network_in":
+            self.prev_network_in_value = data
+            self.network_in_max = total
+            return BasicMetric(MetricType.network_in, value, total, value / total * 100)
+        elif metric_name == "network_out":
+            self.prev_network_out_value = data
+            self.network_out_max = total
+            return BasicMetric(
+                MetricType.network_out, value, total, value / total * 100
+            )
+        else:
+            pass
 
     def get_containers_summary(self) -> List[ContainerSummary]:
         summaries = []
@@ -53,11 +85,29 @@ class Agent:
         cpu_metric = get_metric_from_data(
             metric_name="host_cpu_usage", data=psutil.cpu_percent()
         )
+        network_in = self.get_network_metric(
+            metric_name="network_in",
+            data=psutil.net_io_counters().bytes_recv,
+            prev_value=self.prev_network_in_value,
+            curr_max=self.network_in_max,
+        )
+        network_out = self.get_network_metric(
+            metric_name="network_out",
+            data=psutil.net_io_counters().bytes_sent,
+            prev_value=self.prev_network_out_value,
+            curr_max=self.network_out_max,
+        )
         containers = self.get_containers_summary()
         return HostSummary(
             id=self.host_id,
             timestamp=get_iso_timestamp(),
-            metrics=[virtual_memory_metric, disk_memory_metric, cpu_metric],
+            metrics=[
+                virtual_memory_metric,
+                disk_memory_metric,
+                cpu_metric,
+                network_in,
+                network_out,
+            ],
             containers=containers,
         )
 

@@ -20,6 +20,8 @@ class MetricType(enum.Enum):
     memory_usage = "MEMORY_USAGE"
     disk_usage = "DISK_USAGE"
     cpu_usage = "CPU_USAGE"
+    network_in = "NETWORK_IN"
+    network_out = "NETWORK_OUT"
 
 
 @dataclass_json(letter_case=LetterCase.CAMEL)

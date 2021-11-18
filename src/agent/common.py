@@ -11,6 +11,7 @@ def send_summary_to_backend(endpoint: str, data: Any) -> None:
     try:
         headers = {"Content-type": "application/json", "Accept": "application/json"}
         response = post(url=endpoint, headers=headers, data=data.to_json())
+        print(data.to_json())
         logger.info(f"SENT SUMMARY TO {endpoint}. STATUS CODE: {response.status_code}")
     except Exception as e:
         logger.error(f"FAILED TO SEND SUMMARY TO {endpoint}")
