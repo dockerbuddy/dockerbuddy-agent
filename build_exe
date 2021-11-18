@@ -1,0 +1,7 @@
+#!/bin/bash
+
+docker rm dockiera-agent-linux-exe-container
+docker rmi dockiera-agent-linux-exe-image
+
+docker build -t dockiera-agent-linux-exe-image .
+docker run --name dockiera-agent-linux-exe-container dockiera-agent-linux-exe-image
