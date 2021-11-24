@@ -3,7 +3,6 @@ import os
 import threading
 import time
 from concurrent.futures.thread import ThreadPoolExecutor
-from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, List
 
@@ -37,14 +36,12 @@ class MetricType(enum.Enum):
 
 
 @dataclass_json(letter_case=LetterCase.CAMEL)
-@dataclass
 class BasicMetric:
     metric_type: MetricType
     value: float
 
 
 @dataclass_json(letter_case=LetterCase.CAMEL)
-@dataclass
 class PercentMetric:
     metric_type: MetricType
     value: float
@@ -59,7 +56,6 @@ def get_container_name(container_name: str) -> str:
 
 
 @dataclass_json(letter_case=LetterCase.CAMEL)
-@dataclass
 class ContainerSummary:
     id: str
     name: str
@@ -69,7 +65,6 @@ class ContainerSummary:
 
 
 @dataclass_json(letter_case=LetterCase.CAMEL)
-@dataclass
 class HostSummary:
     id: str
     timestamp: datetime
@@ -127,10 +122,7 @@ def get_metric_from_data(metric_name: str, data: Any) -> PercentMetric:
 
 def get_iso_timestamp() -> str:
     return (
-        datetime.datetime.now(datetime.timezone.utc)
-        .replace(microsecond=0, tzinfo=None)
-        .isoformat()
-        + "Z"
+        datetime.now(timezone.utc).replace(microsecond=0, tzinfo=None).isoformat() + "Z"
     )
 
 
