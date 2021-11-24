@@ -32,6 +32,8 @@ class MetricType(enum.Enum):
     memory_usage = "MEMORY_USAGE"
     disk_usage = "DISK_USAGE"
     cpu_usage = "CPU_USAGE"
+    network_in = "NETWORK_IN"
+    network_out = "NETWORK_OUT"
 
 
 @dataclass_json(letter_case=LetterCase.CAMEL)
@@ -39,8 +41,21 @@ class MetricType(enum.Enum):
 class BasicMetric:
     metric_type: MetricType
     value: float
+
+
+@dataclass_json(letter_case=LetterCase.CAMEL)
+@dataclass
+class PercentMetric:
+    metric_type: MetricType
+    value: float
     total: float
     percent: float
+
+
+def get_container_name(container_name: str) -> str:
+    if container_name.startswith("/"):
+        return container_name[1:]
+    return container_name
 
 
 @dataclass_json(letter_case=LetterCase.CAMEL)
@@ -49,8 +64,8 @@ class ContainerSummary:
     id: str
     name: str
     image: str
-    status: str
-    metrics: List[BasicMetric]
+    state: str
+    metrics: List[PercentMetric]
 
 
 @dataclass_json(letter_case=LetterCase.CAMEL)
@@ -58,28 +73,31 @@ class ContainerSummary:
 class HostSummary:
     id: str
     timestamp: datetime
-    metrics: List[BasicMetric]
+    basic_metrics: List[BasicMetric]
+    percent_metrics: List[PercentMetric]
     containers: List[ContainerSummary]
 
 
 def send_summary_to_backend(endpoint: str, data: Any) -> None:
     try:
         headers = {"Content-type": "application/json", "Accept": "application/json"}
-        print(data.to_json())
         response = post(url=endpoint, headers=headers, data=data.to_json())
+        print(data.to_json())
         logger.info(f"SENT SUMMARY TO {endpoint}. STATUS CODE: {response.status_code}")
     except Exception as e:
         logger.error(f"FAILED TO SEND SUMMARY TO {endpoint}")
 
 
-def get_metric_from_data(metric_name: str, data: Any) -> BasicMetric:
+def get_metric_from_data(metric_name: str, data: Any) -> PercentMetric:
     if metric_name == "virtual_memory":
-        return BasicMetric(MetricType.memory_usage, data.used, data.total, data.percent)
+        return PercentMetric(
+            MetricType.memory_usage, data.used, data.total, data.percent
+        )
     elif metric_name == "disk_memory":
-        return BasicMetric(MetricType.disk_usage, data.used, data.total, data.percent)
+        return PercentMetric(MetricType.disk_usage, data.used, data.total, data.percent)
     elif metric_name == "host_cpu_usage":
         percentage = data
-        return BasicMetric(MetricType.cpu_usage, percentage, 100, percentage)
+        return PercentMetric(MetricType.cpu_usage, percentage, 100, percentage)
     elif metric_name == "container_cpu_usage":
         # NOTE (@bplewnia) - Divide by number of nanoseconds in second -> 10e9
         percentage = (
@@ -90,12 +108,12 @@ def get_metric_from_data(metric_name: str, data: Any) -> BasicMetric:
             * 100
             / 10 ** 9
         )
-        return BasicMetric(MetricType.cpu_usage, percentage, 100, percentage)
+        return PercentMetric(MetricType.cpu_usage, percentage, 100, percentage)
     elif metric_name == "container_memory_usage":
         return (
-            BasicMetric(MetricType.memory_usage, 0, 0, 0)
+            PercentMetric(MetricType.memory_usage, 0, 0, 0)
             if not data
-            else BasicMetric(
+            else PercentMetric(
                 MetricType.memory_usage,
                 data["usage"],
                 data["limit"],
@@ -104,12 +122,15 @@ def get_metric_from_data(metric_name: str, data: Any) -> BasicMetric:
         )
     else:
         logger.error(f"DID NOT FIND OPTION FOR {metric_name}")
-        return BasicMetric(MetricType.cpu_usage, 0, 0, 0)
+        return PercentMetric(MetricType.cpu_usage, 0, 0, 0)
 
 
 def get_iso_timestamp() -> str:
     return (
-        datetime.now(timezone.utc).replace(microsecond=0, tzinfo=None).isoformat() + "Z"
+        datetime.datetime.now(datetime.timezone.utc)
+        .replace(microsecond=0, tzinfo=None)
+        .isoformat()
+        + "Z"
     )
 
 
@@ -117,12 +138,27 @@ class Agent:
     def __init__(self):
         self.docker_client = docker.from_env()
         self.executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
+        self.prev_network_in_value = psutil.net_io_counters().bytes_recv
+        self.prev_network_out_value = psutil.net_io_counters().bytes_sent
 
-        self.host_id = os.environ.get("AGENT_HOST_ID", "1")
+        self.host_id = os.environ.get("HOST_ID", default="1")
         self.backend_endpoint = os.environ.get(
-            "AGENT_BACKEND_ENDPOINT", "http://localhost:8080/api/v2/metrics"
+            "BACKEND_ENDPOINT", default="http://localhost:8080/api/v2/metrics"
         )
-        self.fetch_freq = int(os.environ.get("AGENT_FETCH_FREQ", "10"))
+        self.fetch_freq = int(os.environ.get("FETCH_FREQ", default="10"))
+
+    def get_network_metric(
+        self, metric_name: str, data: int, prev_value: int
+    ) -> BasicMetric:
+        value = data - prev_value
+        if metric_name == "network_in":
+            self.prev_network_in_value = data
+            return BasicMetric(MetricType.network_in, value)
+        elif metric_name == "network_out":
+            self.prev_network_out_value = data
+            return BasicMetric(MetricType.network_out, value)
+        else:
+            pass
 
     def get_containers_summary(self) -> List[ContainerSummary]:
         summaries = []
@@ -137,9 +173,9 @@ class Agent:
             )
             container_summary = ContainerSummary(
                 id=attrs["Id"],
-                name=attrs["Name"],
+                name=get_container_name(attrs["Name"]),
                 image=attrs["Config"]["Image"],
-                status=ContainerState[attrs["State"]["Status"]].name,
+                state=ContainerState[attrs["State"]["Status"]].name,
                 metrics=[virtual_memory_metric, cpu_metric],
             )
 
@@ -156,11 +192,22 @@ class Agent:
         cpu_metric = get_metric_from_data(
             metric_name="host_cpu_usage", data=psutil.cpu_percent()
         )
+        network_in = self.get_network_metric(
+            metric_name="network_in",
+            data=psutil.net_io_counters().bytes_recv,
+            prev_value=self.prev_network_in_value,
+        )
+        network_out = self.get_network_metric(
+            metric_name="network_out",
+            data=psutil.net_io_counters().bytes_sent,
+            prev_value=self.prev_network_out_value,
+        )
         containers = self.get_containers_summary()
         return HostSummary(
             id=self.host_id,
             timestamp=get_iso_timestamp(),
-            metrics=[virtual_memory_metric, disk_memory_metric, cpu_metric],
+            basic_metrics=[network_in, network_out],
+            percent_metrics=[virtual_memory_metric, disk_memory_metric, cpu_metric],
             containers=containers,
         )
 
