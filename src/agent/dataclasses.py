@@ -40,6 +40,12 @@ class PercentMetric:
     percent: float
 
 
+def get_container_name(container_name: str) -> str:
+    if container_name.startswith("/"):
+        return container_name[1:]
+    return container_name
+
+
 @dataclass_json(letter_case=LetterCase.CAMEL)
 @dataclass
 class ContainerSummary:
