@@ -17,11 +17,11 @@ from .config import (
     VIRT_MEM_TOTAL,
 )
 from .dataclasses import (
-    BasicMetric,
     ContainerState,
     ContainerSummary,
     HostSummary,
     MetricType,
+    PercentMetric,
 )
 
 
@@ -103,13 +103,13 @@ class MockAgent:
             mem = int(container_info["memory_usage"])
             cpu_percent = float(container_info["cpu_usage"])
 
-            virtual_memory_metric = BasicMetric(
+            virtual_memory_metric = PercentMetric(
                 MetricType.memory_usage,
                 mem * self.percent_container / 100,
                 mem,
                 self.percent_container,
             )
-            cpu_metric = BasicMetric(
+            cpu_metric = PercentMetric(
                 MetricType.cpu_usage, cpu_percent, 100, cpu_percent
             )
             status = ContainerState[container_info["status"]].name
@@ -125,19 +125,19 @@ class MockAgent:
         return summaries
 
     def get_host_summary(self) -> HostSummary:
-        virtual_memory_metric = BasicMetric(
+        virtual_memory_metric = PercentMetric(
             MetricType.memory_usage,
             self.total_virt_mem * self.percent_virt_mem / 100,
             self.total_virt_mem,
             self.percent_virt_mem,
         )
-        disk_memory_metric = BasicMetric(
+        disk_memory_metric = PercentMetric(
             MetricType.disk_usage,
             self.total_disk_mem * self.percent_disk_mem / 100,
             self.total_disk_mem,
             self.percent_disk_mem,
         )
-        cpu_metric = BasicMetric(
+        cpu_metric = PercentMetric(
             MetricType.cpu_usage, self.percent_cpu, 100, self.percent_cpu
         )
 

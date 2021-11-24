@@ -29,6 +29,13 @@ class MetricType(enum.Enum):
 class BasicMetric:
     metric_type: MetricType
     value: float
+
+
+@dataclass_json(letter_case=LetterCase.CAMEL)
+@dataclass
+class PercentMetric:
+    metric_type: MetricType
+    value: float
     total: float
     percent: float
 
@@ -39,8 +46,8 @@ class ContainerSummary:
     id: str
     name: str
     image: str
-    status: str
-    metrics: List[BasicMetric]
+    state: str
+    metrics: List[PercentMetric]
 
 
 @dataclass_json(letter_case=LetterCase.CAMEL)
@@ -48,5 +55,6 @@ class ContainerSummary:
 class HostSummary:
     id: str
     timestamp: datetime
-    metrics: List[BasicMetric]
+    basic_metrics: List[BasicMetric]
+    percent_metrics: List[PercentMetric]
     containers: List[ContainerSummary]

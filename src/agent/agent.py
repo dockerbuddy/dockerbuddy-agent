@@ -1,4 +1,3 @@
-import os
 import time
 from concurrent.futures.thread import ThreadPoolExecutor
 from datetime import datetime
@@ -26,9 +25,6 @@ class Agent:
         self.prev_network_in_value = psutil.net_io_counters().bytes_recv
         self.prev_network_out_value = psutil.net_io_counters().bytes_sent
 
-        self.network_in_max = 1
-        self.network_out_max = 1
-
         self.host_id = config("HOST_ID", default="1")
         self.backend_endpoint = config(
             "BACKEND_ENDPOINT", default="http://localhost:8080/api/v2/metrics"
@@ -36,20 +32,15 @@ class Agent:
         self.fetch_freq = config("FETCH_FREQ", default=10, cast=int)
 
     def get_network_metric(
-        self, metric_name: str, data: int, prev_value: int, curr_max: int
+        self, metric_name: str, data: int, prev_value: int
     ) -> BasicMetric:
         value = data - prev_value
-        total = max(value, curr_max)
         if metric_name == "network_in":
             self.prev_network_in_value = data
-            self.network_in_max = total
-            return BasicMetric(MetricType.network_in, value, total, value / total * 100)
+            return BasicMetric(MetricType.network_in, value)
         elif metric_name == "network_out":
             self.prev_network_out_value = data
-            self.network_out_max = total
-            return BasicMetric(
-                MetricType.network_out, value, total, value / total * 100
-            )
+            return BasicMetric(MetricType.network_out, value)
         else:
             pass
 
@@ -68,7 +59,7 @@ class Agent:
                 id=attrs["Id"],
                 name=attrs["Name"],
                 image=attrs["Config"]["Image"],
-                status=ContainerState[attrs["State"]["Status"]].name,
+                state=ContainerState[attrs["State"]["Status"]].name,
                 metrics=[virtual_memory_metric, cpu_metric],
             )
 
@@ -89,25 +80,18 @@ class Agent:
             metric_name="network_in",
             data=psutil.net_io_counters().bytes_recv,
             prev_value=self.prev_network_in_value,
-            curr_max=self.network_in_max,
         )
         network_out = self.get_network_metric(
             metric_name="network_out",
             data=psutil.net_io_counters().bytes_sent,
             prev_value=self.prev_network_out_value,
-            curr_max=self.network_out_max,
         )
         containers = self.get_containers_summary()
         return HostSummary(
             id=self.host_id,
             timestamp=get_iso_timestamp(),
-            metrics=[
-                virtual_memory_metric,
-                disk_memory_metric,
-                cpu_metric,
-                network_in,
-                network_out,
-            ],
+            basic_metrics=[network_in, network_out],
+            percent_metrics=[virtual_memory_metric, disk_memory_metric, cpu_metric],
             containers=containers,
         )
 
