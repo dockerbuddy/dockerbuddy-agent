@@ -15,6 +15,7 @@ from .dataclasses import (
     ContainerSummary,
     HostSummary,
     MetricType,
+    get_container_name,
 )
 
 
@@ -57,7 +58,7 @@ class Agent:
             )
             container_summary = ContainerSummary(
                 id=attrs["Id"],
-                name=attrs["Name"],
+                name=get_container_name(attrs["Name"]),
                 image=attrs["Config"]["Image"],
                 state=ContainerState[attrs["State"]["Status"]].name,
                 metrics=[virtual_memory_metric, cpu_metric],
