@@ -138,11 +138,9 @@ class Agent:
         self.prev_network_in_value = psutil.net_io_counters().bytes_recv
         self.prev_network_out_value = psutil.net_io_counters().bytes_sent
 
-        self.host_id = os.environ.get("HOST_ID", default="1")
-        self.backend_endpoint = os.environ.get(
-            "BACKEND_ENDPOINT", default="http://localhost:8080/api/v2/metrics"
-        )
-        self.fetch_freq = int(os.environ.get("FETCH_FREQ", default="10"))
+        self.host_id = os.environ.get("AGENT_HOST_ID", default="1")
+        self.backend_endpoint = os.environ.get("AGENT_BACKEND_ENDPOINT")
+        self.fetch_freq = int(os.environ.get("AGENT_FETCH_FREQ", default="10"))
 
     def get_network_metric(
         self, metric_name: str, data: int, prev_value: int
