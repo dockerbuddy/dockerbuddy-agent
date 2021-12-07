@@ -73,6 +73,7 @@ class ContainerSummary:
 class HostSummary:
     id: str
     timestamp: datetime
+    sender_interval: int
     basic_metrics: List[BasicMetric]
     percent_metrics: List[PercentMetric]
     containers: List[ContainerSummary]
@@ -138,8 +139,12 @@ class Agent:
         self.prev_network_in_value = psutil.net_io_counters().bytes_recv
         self.prev_network_out_value = psutil.net_io_counters().bytes_sent
 
-        self.host_id = os.environ.get("AGENT_HOST_ID", default="1")
-        self.backend_endpoint = os.environ.get("AGENT_BACKEND_ENDPOINT")
+        self.host_id = os.environ.get(
+            "AGENT_HOST_ID", default="de87939b-d40d-4dba-85ee-04d0cdd6b5d4"
+        )
+        self.backend_endpoint = os.environ.get(
+            "AGENT_BACKEND_ENDPOINT", default="http://localhost:8080/api/v2/metrics"
+        )
         self.fetch_freq = int(os.environ.get("AGENT_FETCH_FREQ", default="10"))
 
     def get_network_metric(
@@ -201,6 +206,7 @@ class Agent:
         return HostSummary(
             id=self.host_id,
             timestamp=get_iso_timestamp(),
+            sender_interval=self.fetch_freq,
             basic_metrics=[network_in, network_out],
             percent_metrics=[virtual_memory_metric, disk_memory_metric, cpu_metric],
             containers=containers,

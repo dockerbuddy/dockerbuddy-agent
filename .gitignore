@@ -143,3 +143,5 @@ cython_debug/
 #DEV FILES
 .pre-commit-config.yaml
 poetry.lock
+prev_releases
+*.zip
